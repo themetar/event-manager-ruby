@@ -1,7 +1,5 @@
 require 'csv'
-require 'erb'
 require 'bundler/setup'
-require 'google/apis/civicinfo_v2'
 
 def clean_zipcode(zipcode)
   zipcode.to_s.rjust(5, '0')[0..4]
@@ -50,13 +48,27 @@ def generate_emails(contents)
   end
 end
 
-puts 'Event Manager Initialized!'
-
 contents = CSV.open(
   'event_attendees.csv',
   headers: true,
   header_converters: :symbol
 )
 
-generate_emails(contents)
+command  = ARGV[0]
+
+puts 'Event Manager Initialized!' if ['emails'].include?(command)
+
+case command
+when 'emails'
+  require 'erb'
+  require 'google/apis/civicinfo_v2'
+  generate_emails(contents)  
+else
+  puts %$Usage: ruby lib/event_manager.rb COMMAND
+
+COMMANDS:
+
+  emails    Generates call to action emails in oputput directory.$
+end
+
 
