@@ -48,6 +48,23 @@ def generate_emails(contents)
   end
 end
 
+def clean_phone_number(phone_number)
+  stripped = phone_number.gsub(/\D/, '')  # ignore non-digits
+  
+  return '0000000000' unless /^1?(\d{10})$/ =~ stripped # return default 'bad' number if it doesn't match the pattern
+
+  stripped[-10..]
+end
+
+def print_phonebook(contents)
+  contents.each do |row|
+    name = row[:first_name]
+    surname = row[:last_name]
+    phone = clean_phone_number(row[:homephone])
+    puts "#{name} #{surname}\t#{phone}"
+  end
+end
+
 contents = CSV.open(
   'event_attendees.csv',
   headers: true,
@@ -56,19 +73,23 @@ contents = CSV.open(
 
 command  = ARGV[0]
 
-puts 'Event Manager Initialized!' if ['emails'].include?(command)
+puts 'Event Manager Initialized!' if ['emails', 'phonebook'].include?(command)
 
 case command
 when 'emails'
   require 'erb'
   require 'google/apis/civicinfo_v2'
-  generate_emails(contents)  
+  generate_emails(contents)
+when 'phonebook'
+  print_phonebook(contents)
 else
   puts %$Usage: ruby lib/event_manager.rb COMMAND
 
 COMMANDS:
 
-  emails    Generates call to action emails in oputput directory.$
+  emails      Generates call to action emails in oputput directory.
+  
+  phonebook   Prints attendees' telephone contact.$
 end
 
 
