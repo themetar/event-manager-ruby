@@ -1,4 +1,5 @@
 require 'csv'
+require 'time'
 require 'bundler/setup'
 
 def clean_zipcode(zipcode)
@@ -65,6 +66,25 @@ def print_phonebook(contents)
   end
 end
 
+def tabulate_times(csv, transform, titles)
+  times = csv.collect { |row| Time.strptime(row[:regdate], '%m/%d/%y %k:%M') }
+  
+  counts = times.collect(&transform).tally
+
+  titles.each_with_index do |title, i|
+    count = counts[i] || 0
+
+    next if count.zero?
+
+    percent = count / times.length.to_f * 100
+    bar = ('#' * (percent / 10).round).ljust(10, ' ')
+    percent_s = (percent.round(2).to_s + '%').rjust(7, ' ')
+
+    puts "#{title} | #{bar} | #{percent_s}"
+  end
+end
+
+
 contents = CSV.open(
   'event_attendees.csv',
   headers: true,
@@ -73,7 +93,7 @@ contents = CSV.open(
 
 command  = ARGV[0]
 
-puts 'Event Manager Initialized!' if ['emails', 'phonebook'].include?(command)
+puts 'Event Manager Initialized!' if ['emails', 'phonebook', 'targettime'].include?(command)
 
 case command
 when 'emails'
@@ -82,6 +102,9 @@ when 'emails'
   generate_emails(contents)
 when 'phonebook'
   print_phonebook(contents)
+when 'targettime'
+  titles = (0..23).collect { |h| h.to_s.rjust(2, '0') + 'h' }
+  tabulate_times(contents, :hour, titles)
 else
   puts %$Usage: ruby lib/event_manager.rb COMMAND
 
@@ -89,7 +112,9 @@ COMMANDS:
 
   emails      Generates call to action emails in oputput directory.
   
-  phonebook   Prints attendees' telephone contact.$
+  phonebook   Prints attendees' telephone contact.
+
+  targettime  Tabulates popular registration times.$
 end
 
 
