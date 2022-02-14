@@ -1,5 +1,6 @@
 require 'csv'
 require 'time'
+require 'date'
 require 'bundler/setup'
 
 def clean_zipcode(zipcode)
@@ -105,6 +106,8 @@ when 'phonebook'
 when 'targettime'
   titles = (0..23).collect { |h| h.to_s.rjust(2, '0') + 'h' }
   tabulate_times(contents, :hour, titles)
+when 'targetday'
+  tabulate_times(contents, :wday, Date::ABBR_DAYNAMES)
 else
   puts %$Usage: ruby lib/event_manager.rb COMMAND
 
@@ -114,7 +117,9 @@ COMMANDS:
   
   phonebook   Prints attendees' telephone contact.
 
-  targettime  Tabulates popular registration times.$
+  targettime  Tabulates popular registration times.
+
+  targetday   Tabulates popular registration weekdays.$
 end
 
 
